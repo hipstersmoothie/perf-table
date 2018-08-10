@@ -12,6 +12,15 @@ Tools Used:
 
 ## Setup
 
+First start off by cloning this repo and setting the `origin` to your own repo.
+
+```sh
+git clone https://github.com/hipstersmoothie/package-starter
+git remote rm origin
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_GITHUB_REPO.git
+git push -u origin master
+```
+
 ### Package.json
 
 1. Change `name` to your package name.
