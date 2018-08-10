@@ -1,0 +1,95 @@
+version: 2
+
+general:
+  artifacts:
+    - coverage/
+
+defaults: &defaults
+  working_directory: ~/package-starter
+  docker:
+    - image: circleci/node:latest-browsers
+    
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys: 
+            # Find a cache corresponding to this specific package.json checksum
+            # when this file is changed, this key will fail
+            - package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
+            - package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - package-starter-{{ .Branch }}
+            # Find the most recent cache used from any branch
+            - package-starter-master
+            - package-starter-
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Build
+          command: yarn build
+      - save_cache:
+          key: package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
+          paths:
+            - ~/.cache/yarn
+            - node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+              - .
+  lint:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/package-starter   
+      - run:
+          name: Lint
+          command: yarn lint
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/package-starter 
+      - run:
+          name: Test
+          command: yarn test --ci
+  # publish:
+  #   <<: *defaults
+  #   steps:
+  #     - attach_workspace:
+  #         at: ~/package-starter 
+  #     - run: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+  #     - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+  #     - run:
+  #         name: Publish Library
+  #         command: npm run release
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - lint:
+          requires:
+              - build
+          filters:
+            tags:
+              only: /.*/
+      - test:
+          requires:
+              - build
+          filters:
+            tags:
+              only: /.*/
+      # - publish:
+      #     requires:
+      #         - lint
+      #         - test
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master

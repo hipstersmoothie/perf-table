@@ -1,0 +1,78 @@
+{
+  "name": "package-starter",
+  "version": "0.0.0",
+  "description": "Give me a description",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "xo",
+    "build": "babel src -d dist",
+    "build:watch": "npm run build -- --watch --verbose",
+    "release": "github-semantic-version --bump --changelog --push --publish"
+  },
+  "author": {
+    "name": "YOUR NAME",
+    "email": "YOUR EMAIL"
+  },
+  "repository": {
+    "type": "git",
+    "url": "YOUR_PROJECT_URL"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-rc.1",
+    "@babel/core": "^7.0.0-rc.1",
+    "@babel/preset-env": "^7.0.0-rc.1",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.4.2",
+    "babel-plugin-add-module-exports": "^0.3.2",
+    "github-semantic-version": "^7.6.0",
+    "husky": "^1.0.0-rc.13",
+    "jest": "^23.4.2",
+    "lint-staged": "^7.2.0",
+    "prettier": "^1.14.2",
+    "xo": "^0.22.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/env"
+    ],
+    "plugins": [
+      "add-module-exports"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "jest": {
+    "testURL": "http://localhost"
+  },
+  "xo": {
+    "env": [
+      "jest"
+    ],
+    "extends": [
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "gsv": {
+    "majorLabel": "major",
+    "minorLabel": "minor",
+    "patchLabel": "patch",
+    "internalLabel": "internal"
+  }
+}
