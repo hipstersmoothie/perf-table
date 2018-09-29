@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier",
+    "tslint-xo/space"
+  ],
+  "rules": {
+    "no-console": false,
+    "object-curly-spacing": false,
+    "quotemark": [true, "single", "avoid-escape"]
+  }
+}
