@@ -1,6 +1,6 @@
 declare module 'markdown-table' {
-  type MarkdownTable = (data: any[]) => void;
-  const markdownTable: MarkdownTable;
+  type MarkdownTable = (data: any[]) => string;
+  export const markdownTable: MarkdownTable;
 
-  export default markdownTable;
+  export = markdownTable;
 }

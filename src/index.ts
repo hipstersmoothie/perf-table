@@ -1,9 +1,10 @@
 import * as Benchmark from 'benchmark';
+import * as compose from 'compose-tiny';
 import * as fs from 'fs';
 import * as ora from 'ora';
 
 // Table Renderers
-import mdTable from 'markdown-table';
+import * as mdTable from 'markdown-table';
 import { table } from 'table';
 
 interface IBenchmark extends Benchmark {
@@ -15,11 +16,23 @@ interface IBenchmarkResult extends Benchmark.Event {
   target: IBenchmark;
 }
 
+type IBenchmarkFunction = () => void;
+
+export const enum Renderer {
+  cli = 'CLI',
+  md = 'md'
+}
+
+interface IRendererMap {
+  [key: string]: (data: (string | number)[][]) => string;
+}
+
 interface IBenchmarkOptions {
-  name: string;
-  compare: string[];
-  options: any;
-  file: string;
+  compare: [string, IBenchmarkFunction][];
+  file?: string;
+  log?: boolean;
+  options?: Benchmark.Options;
+  renderer?: Renderer | string;
 }
 
 const initTableConfig = (benchmarkResults: IBenchmarkResult[]) => [
@@ -32,74 +45,89 @@ const initTableConfig = (benchmarkResults: IBenchmarkResult[]) => [
   ])
 ];
 
-function sortDescResults(benchmarkResults: IBenchmarkResult[]) {
-  return benchmarkResults.sort((a, b) => (a.target.hz < b.target.hz ? 1 : -1));
-}
+const sortDescResults = (benchmarkResults: IBenchmarkResult[]) =>
+  benchmarkResults.sort((a, b) => (a.target.hz < b.target.hz ? 1 : -1));
 
-const defaultOptions = { minSamples: 100, renderer: 'cli' };
+const defaultOptions = { minSamples: 100 };
 
-export = ({ name, compare = [], options = {}, file }: IBenchmarkOptions) => {
-  const benchmarkName = 'benchmark';
-  const benchmark = new Benchmark.Suite(benchmarkName);
-  const currentOptions = { ...defaultOptions, ...options };
-  const results: IBenchmarkResult[] = [];
-
-  let spinner = ora();
-
-  compare.forEach(([packageName, packageRunner]) => {
-    benchmark.add(packageName, packageRunner, currentOptions);
-  });
-
-  benchmark
-    .on('start', (event: IBenchmarkResult) => {
-      spinner = ora(`Running ${event.target.name} benchmark`);
-      spinner.start();
-    })
-    .on('cycle', (event: IBenchmarkResult) => {
-      const { name: testName } = event.target;
-      const index = Object.values(event.currentTarget).findIndex(
-        t => t.name === testName
-      );
-
-      results.push(event);
-      spinner.succeed(name);
-
-      if (!event.currentTarget[index + 1]) {
-        return;
-      }
-
-      spinner = ora(`Running ${event.currentTarget[index + 1].name} benchmark`);
-      spinner.start();
-    })
-    .on('complete', () => {
-      spinner.stop();
-
-      const sorted = sortDescResults(results);
-      const config = initTableConfig(sorted);
-      const renderer = currentOptions.renderer.toLowerCase();
-      let data;
-
-      if (renderer === 'cli') {
-        data = table(config);
-      } else if (renderer === 'md' || renderer === 'markdown') {
-        data = mdTable(config);
-      }
-
-      if (!data) {
-        return;
-      }
-
-      if (!file) {
-        return console.log(data);
-      }
-
-      fs.writeFile(file, data, err => {
-        if (err) {
-          console.error(err);
-        } else {
-          console.log(`Successfully wrote performance results to: ${file}`);
-        }
-      });
-    })
-    .run({ async: true });
+const renderers: IRendererMap = {
+  [Renderer.md]: mdTable,
+  [Renderer.cli]: table
 };
+
+export default ({
+  compare,
+  file,
+  log = true,
+  options,
+  renderer = Renderer.cli
+}: IBenchmarkOptions): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const renderFunction = renderers[renderer];
+
+    if (!renderFunction) {
+      return reject(new Error('Renderer not found.'));
+    }
+
+    const benchmark = new Benchmark.Suite('benchmark');
+    const currentOptions = { ...defaultOptions, ...options };
+    const results: IBenchmarkResult[] = [];
+    const renderTable = compose(
+      renderFunction,
+      initTableConfig,
+      sortDescResults
+    );
+
+    let spinner = ora();
+
+    compare.forEach(([packageName, packageRunner]) => {
+      benchmark.add(packageName, packageRunner, currentOptions);
+    });
+
+    benchmark
+      .on('start', (event: IBenchmarkResult) => {
+        spinner = ora(`Running ${event.target.name} benchmark`);
+        spinner.start();
+      })
+      .on('cycle', (event: IBenchmarkResult) => {
+        const { name } = event.target;
+        const index = Object.values(event.currentTarget).findIndex(
+          t => t.name === name
+        );
+
+        results.push(event);
+        spinner.succeed(name);
+
+        if (!event.currentTarget[index + 1]) {
+          return;
+        }
+
+        spinner = ora(
+          `Running ${event.currentTarget[index + 1].name} benchmark`
+        );
+        spinner.start();
+      })
+      .on('complete', () => {
+        spinner.stop();
+
+        const data = renderTable(results);
+
+        if (log) {
+          console.log(data);
+        }
+
+        if (!file) {
+          return resolve(data);
+        }
+
+        fs.writeFile(file, data, err => {
+          if (err) {
+            reject(err);
+          } else {
+            console.log(`Successfully wrote performance results to: ${file}`);
+            resolve(data);
+          }
+        });
+      })
+      .run({ async: true });
+  });
