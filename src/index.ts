@@ -61,8 +61,8 @@ export default ({
   log = true,
   options,
   renderer = Renderer.cli
-}: IBenchmarkOptions): Promise<string> =>
-  new Promise((resolve, reject) => {
+}: IBenchmarkOptions): Promise<string> => {
+  return new Promise((resolve, reject) => {
     const renderFunction = renderers[renderer];
 
     if (!renderFunction) {
@@ -131,3 +131,4 @@ export default ({
       })
       .run({ async: true });
   });
+};

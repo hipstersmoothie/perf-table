@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import benchmark, { Renderer } from '../src';
+import { mockConsole } from './mock-console';
 
 const data = new Array(45).fill(100);
 
@@ -46,7 +47,7 @@ function forEach() {
 jest.setTimeout(120 * 1000);
 
 describe('perf table', () => {
-  test('error when no renderer found', async () => {
+  test('should error when no renderer found', async () => {
     expect.assertions(1);
 
     try {
@@ -61,7 +62,7 @@ describe('perf table', () => {
     }
   });
 
-  test('render CLI table', async () => {
+  test('should render CLI table', async () => {
     const result = await benchmark({
       compare: [['while', whileLoop], ['forEach', forEach]],
       log: false,
@@ -113,5 +114,16 @@ describe('perf table', () => {
     } catch (e) {
       expect(e).toBeDefined();
     }
+  });
+
+  test('should log to the console', async () => {
+    const { calls } = mockConsole();
+
+    await benchmark({
+      compare: [['forOf', forOf], ['for', forLoop]],
+      options: { minSamples: 10 }
+    });
+
+    expect(calls[0][0].indexOf('┼') > -1).toBe(true);
   });
 });
