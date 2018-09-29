@@ -1,31 +1,35 @@
 {
-  "name": "package-starter",
+  "name": "perf-table",
   "version": "0.0.0",
-  "description": "Give me a description",
-  "main": "dist/index.js",
+  "description": "Output a performance test table to CLI or markdown",
+  "main": "index.js",
   "scripts": {
     "test": "jest",
     "lint": "xo",
-    "build": "babel src -d dist",
-    "build:watch": "npm run build -- --watch --verbose",
     "release": "github-semantic-version --bump --changelog --push --publish"
   },
   "author": {
-    "name": "YOUR NAME",
-    "email": "YOUR EMAIL"
+    "name": "Andrew Lisowski",
+    "email": "lisowski54@gmail.com"
   },
   "repository": {
     "type": "git",
     "url": "YOUR_PROJECT_URL"
   },
   "license": "MIT",
+  "dependencies": {
+    "add": "^2.0.6",
+    "benchmark": "^2.1.4",
+    "cli-table": "^0.3.1",
+    "logdown": "^3.2.7",
+    "markdown-table": "^1.1.2",
+    "node-fetch": "^2.2.0",
+    "ora": "^3.0.0",
+    "phin": "^2.9.2",
+    "table": "^5.0.2"
+  },
   "devDependencies": {
-    "@babel/cli": "^7.0.0-rc.1",
-    "@babel/core": "^7.0.0-rc.1",
-    "@babel/preset-env": "^7.0.0-rc.1",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.4.2",
-    "babel-plugin-add-module-exports": "^0.3.2",
+    "eslint-plugin-prettier": "^2.7.0",
     "github-semantic-version": "^7.6.0",
     "husky": "^1.0.0-rc.13",
     "jest": "^23.4.2",
@@ -33,19 +37,8 @@
     "prettier": "^1.14.2",
     "xo": "^0.22.0"
   },
-  "babel": {
-    "presets": [
-      "@babel/env"
-    ],
-    "plugins": [
-      "add-module-exports"
-    ]
-  },
   "prettier": {
     "singleQuote": true
-  },
-  "jest": {
-    "testURL": "http://localhost"
   },
   "xo": {
     "env": [
