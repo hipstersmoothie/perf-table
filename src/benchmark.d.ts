@@ -18,6 +18,7 @@ export interface IBenchmarkOptions {
   compare: IComparisonList;
   file?: string;
   log?: boolean;
+  bundle?: boolean | 'link';
   options?: Benchmark.Options;
   renderer?: Renderer | string | IRenderFunction;
 }

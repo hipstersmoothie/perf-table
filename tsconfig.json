@@ -13,5 +13,5 @@
     "sourceMap": true,
     "strict": true
   },
-  "files": ["src/index.ts", "types/markdown-table.d.ts"]
+  "files": ["src/index.ts", "types/markdown-table.d.ts", "types/file-size.d.ts"]
 }

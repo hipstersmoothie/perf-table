@@ -1,6 +1,7 @@
 import * as Benchmark from 'benchmark';
-import * as compose from 'compose-tiny';
+import * as fileSize from 'file-size';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 import * as ora from 'ora';
 
 import * as mdTable from 'markdown-table';
@@ -26,15 +27,74 @@ const renderers: IRendererMap = {
   [Renderer.html]: renderHTML
 };
 
-const initTableConfig = (benchmarkResults: IBenchmarkResult[]) => [
-  ['NAME', 'OPS/SEC', 'RELATIVE MARGIN OF ERROR', 'SAMPLE SIZE'],
-  ...benchmarkResults.map(result => [
+export function makeBundleLink(
+  { size, name }: { size: number; name: string },
+  options: IBenchmarkOptions
+) {
+  const bundleLink = `https://bundlephobia.com/result?p=${name}`;
+  const readableSize = fileSize(size).human('si');
+
+  let formattedLink: string;
+
+  if (options.bundle === true) {
+    return readableSize;
+  }
+
+  switch (options.renderer) {
+    case Renderer.md:
+      formattedLink = `[${readableSize}](${bundleLink})`;
+      break;
+    case Renderer.html:
+      formattedLink = `<a href="${bundleLink}">${readableSize}</a>`;
+      break;
+    default:
+      formattedLink = `${readableSize} (${bundleLink})`;
+  }
+
+  return formattedLink;
+}
+
+export const buildRow = (options: IBenchmarkOptions) => async (
+  result: IBenchmarkResult
+) => {
+  const row = [
     result.target.name,
     result.target.hz.toLocaleString('en-US', { maximumFractionDigits: 0 }),
     `± ${result.target.stats.rme.toFixed(2)}%`,
     result.target.stats.sample.length
-  ])
-];
+  ];
+
+  if (options.bundle) {
+    const test = await fetch(
+      `https://bundlephobia.com/api/size?package=${result.target.name}`
+    );
+    const json = await test.json();
+
+    row.push(makeBundleLink(json, options));
+  }
+
+  return row;
+};
+
+export function buildHeader(options: IBenchmarkOptions) {
+  const header = ['NAME', 'OPS/SEC', 'RELATIVE MARGIN OF ERROR', 'SAMPLE SIZE'];
+
+  if (options.bundle) {
+    header.push('BUNDLE SIZE');
+  }
+
+  return header;
+}
+
+const initTableConfig = async (
+  benchmarkResults: IBenchmarkResult[],
+  options: IBenchmarkOptions
+) => {
+  const header = buildHeader(options);
+  const rows = await Promise.all(benchmarkResults.map(buildRow(options)));
+
+  return [header, ...rows];
+};
 
 const sortDescResults = (benchmarkResults: IBenchmarkResult[]) =>
   benchmarkResults.sort((a, b) => (a.target.hz < b.target.hz ? 1 : -1));
@@ -50,20 +110,19 @@ export function parseOptions(rawOptions: IBenchmarkOptions | IComparisonList) {
     benchmarkOptions = rawOptions;
   }
 
+  if (!benchmarkOptions.renderer) {
+    benchmarkOptions.renderer = Renderer.cli;
+  }
+
   return benchmarkOptions;
 }
 
 export default (
   rawOptions: IBenchmarkOptions | IComparisonList
 ): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const {
-      compare,
-      file,
-      log,
-      options,
-      renderer = Renderer.cli
-    } = parseOptions(rawOptions);
+  new Promise(async (resolve, reject) => {
+    const parsedOptions = parseOptions(rawOptions);
+    const { compare, file, log, options, renderer } = parsedOptions;
     const renderFunction =
       typeof renderer === 'string' ? renderers[renderer] : renderer;
 
@@ -74,11 +133,6 @@ export default (
     const benchmark = new Benchmark.Suite('benchmark');
     const currentOptions = { ...defaultOptions, ...options };
     const results: IBenchmarkResult[] = [];
-    const renderTable = compose(
-      renderFunction,
-      initTableConfig,
-      sortDescResults
-    );
 
     let spinner = ora();
 
@@ -110,8 +164,10 @@ export default (
           target: event.currentTarget[index + 1]
         } as IBenchmarkResult);
       })
-      .on('complete', () => {
-        const data = renderTable(results);
+      .on('complete', async () => {
+        const sorted = sortDescResults(results);
+        const config = await initTableConfig(sorted, parsedOptions);
+        const data = renderFunction(config);
 
         if (log === true || (log === undefined && !file)) {
           console.log(data);

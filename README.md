@@ -140,6 +140,28 @@ table({
 })
 ```
 
+### BundlePhobia Stats
+
+You can display [bundlePhobia](https://bundlephobia.com/) column with your perf table to really compare yourself against the competition.
+
+```js
+table({
+  compare: [ ... ],
+  bundle: true
+})
+```
+
+#### Link
+
+To add a link the to [bundlePhobia](https://bundlephobia.com/) output set `bundle` to `'link'`.
+
+```js
+table({
+  compare: [ ... ],
+  bundle: 'link'
+})
+```
+
 # CONFIG LEFT TO DO:
 
 ### Github Config

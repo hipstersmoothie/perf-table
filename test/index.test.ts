@@ -1,5 +1,15 @@
 import * as fs from 'fs';
-import benchmark, { parseOptions } from '../src';
+
+import * as Benchmark from 'benchmark';
+
+import benchmark, {
+  buildHeader,
+  buildRow,
+  makeBundleLink,
+  parseOptions
+} from '../src';
+
+import { IBenchmark, IBenchmarkResult } from '../src/benchmark';
 import { Renderer } from '../src/renderers/renderer';
 import { mockConsole } from './mock-console';
 
@@ -44,6 +54,144 @@ test('parseOptions', () => {
   expect(
     parseOptions([['while', whileLoop], ['forEach', forEach]]).compare
   ).toEqual([['while', whileLoop], ['forEach', forEach]]);
+});
+
+const minimumOptions = {
+  compare: []
+};
+
+describe('buildHeader', () => {
+  test('should return default', () => {
+    expect(buildHeader(minimumOptions)).toEqual([
+      'NAME',
+      'OPS/SEC',
+      'RELATIVE MARGIN OF ERROR',
+      'SAMPLE SIZE'
+    ]);
+  });
+
+  test('should return bundle', () => {
+    expect(buildHeader({ ...minimumOptions, bundle: true })).toEqual([
+      'NAME',
+      'OPS/SEC',
+      'RELATIVE MARGIN OF ERROR',
+      'SAMPLE SIZE',
+      'BUNDLE SIZE'
+    ]);
+  });
+});
+
+describe('makeBundleLink', () => {
+  test('should default to return just the size', () => {
+    expect(
+      makeBundleLink(
+        { size: 12345, name: 'mock-package' },
+        { ...minimumOptions, bundle: true }
+      )
+    ).toBe('12.35 kB');
+  });
+
+  test('should add link when set to "link"', () => {
+    expect(
+      makeBundleLink(
+        { size: 12312345, name: 'mock-package' },
+        { ...minimumOptions, bundle: 'link' }
+      )
+    ).toBe('12.31 MB (https://bundlephobia.com/result?p=mock-package)');
+  });
+
+  test('should add html link when set to "link" with html renderer', () => {
+    expect(
+      makeBundleLink(
+        { size: 500, name: 'mock-package' },
+        { ...minimumOptions, bundle: 'link', renderer: Renderer.html }
+      )
+    ).toBe(
+      '<a href="https://bundlephobia.com/result?p=mock-package">500.00 Bytes</a>'
+    );
+  });
+
+  test('should add md link when set to "link" with md renderer', () => {
+    expect(
+      makeBundleLink(
+        { size: 500, name: 'mock-package' },
+        { ...minimumOptions, bundle: 'link', renderer: Renderer.md }
+      )
+    ).toBe('[500.00 Bytes](https://bundlephobia.com/result?p=mock-package)');
+  });
+});
+
+const fakeTarget = (name: string, hz: number, rme: number) =>
+  ({
+    abort: () => ({} as Benchmark),
+    aborted: false,
+    cancelled: false,
+    clone: () => ({} as Benchmark),
+    compare: () => 1,
+    compiled: '',
+    count: 1,
+    cycles: 1,
+    emit: () => undefined,
+    error: new Error(),
+    fn: () => undefined,
+    hz,
+    listeners: () => [() => undefined],
+    name,
+    off: () => ({} as Benchmark),
+    on: () => ({} as Benchmark),
+    reset: () => ({} as Benchmark),
+    result: undefined,
+    run: () => ({} as Benchmark),
+    running: false,
+    setup: () => ({} as Benchmark),
+    stats: {
+      deviation: 1,
+      mean: 1,
+      moe: 1,
+      rme,
+      sample: new Array(150),
+      sem: 1,
+      variance: 1
+    },
+    teardown: () => undefined,
+    timeStamp: undefined,
+    times: {
+      cycle: 1,
+      elapsed: 1,
+      period: 1,
+      timeStamp: 1
+    },
+    type: ''
+  } as IBenchmark);
+
+describe('buildRow', () => {
+  test('should return default', async () => {
+    const row = await buildRow(minimumOptions)(
+      Object.assign(fakeTarget('fake', 21234, 0.6543), {
+        currentTarget: [fakeTarget('other', 1234, 0.2504) as IBenchmark],
+        target: fakeTarget('dlv@1.1.2', 123123123, 1.2004) as IBenchmark
+      } as IBenchmarkResult)
+    );
+
+    expect(row).toEqual(['dlv@1.1.2', '123,123,123', '± 1.20%', 150]);
+  });
+
+  test('should return return bundle info', async () => {
+    const row = await buildRow({ ...minimumOptions, bundle: true })(
+      Object.assign(fakeTarget('fake', 21234, 0.6543), {
+        currentTarget: [fakeTarget('other', 1234, 0.2504) as IBenchmark],
+        target: fakeTarget('dlv@1.1.2', 123123123, 1.2004) as IBenchmark
+      } as IBenchmarkResult)
+    );
+
+    expect(row).toEqual([
+      'dlv@1.1.2',
+      '123,123,123',
+      '± 1.20%',
+      150,
+      '209.00 Bytes'
+    ]);
+  });
 });
 
 describe('perf table', () => {
