@@ -60,7 +60,7 @@ table([
 
 ### Providing Tuples with other configuration
 
-If you want to configure the table furthur you will have to put the array demonstrated above in the `compare` key of your options
+If you want to configure the table further you will have to put the array demonstrated above in the `compare` key of your options.
 
 ```js
 table({
@@ -69,7 +69,8 @@ table({
     ['for of', forOf],
     ['while', whileLoop],
     ['forEach', forEach]
-  ]
+  ],
+  ...
 });
 ```
 

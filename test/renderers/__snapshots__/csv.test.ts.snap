@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renderCSV 1`] = `
+"
+name,age,pizza topping
+burt,40,anchovies
+gert,35,pineapple
+john,18,basil"
+`;

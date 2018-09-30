@@ -8,31 +8,15 @@ import { table } from 'table';
 import renderCSV from './renderers/csv';
 import renderHTML from './renderers/html';
 
-import { IRenderFunction, Renderer } from './renderers/types';
+import {
+  IBenchmarkOptions,
+  IBenchmarkResult,
+  IComparisonList
+} from './benchmark';
+import { IRenderFunction, Renderer } from './renderers/renderer';
 
 interface IRendererMap {
   [key: string]: IRenderFunction;
-}
-
-interface IBenchmark extends Benchmark {
-  name: string;
-}
-
-interface IBenchmarkResult extends Benchmark.Event {
-  currentTarget: IBenchmark[];
-  target: IBenchmark;
-}
-
-type IBenchmarkFunction = () => void;
-
-type IComparisonList = [string, IBenchmarkFunction][];
-
-interface IBenchmarkOptions {
-  compare: IComparisonList;
-  file?: string;
-  log?: boolean;
-  options?: Benchmark.Options;
-  renderer?: Renderer | string;
 }
 
 const renderers: IRendererMap = {
@@ -57,25 +41,29 @@ const sortDescResults = (benchmarkResults: IBenchmarkResult[]) =>
 
 const defaultOptions = { minSamples: 100 };
 
+export function parseOptions(rawOptions: IBenchmarkOptions | IComparisonList) {
+  let benchmarkOptions: IBenchmarkOptions;
+
+  if (Array.isArray(rawOptions)) {
+    benchmarkOptions = { compare: rawOptions } as IBenchmarkOptions;
+  } else {
+    benchmarkOptions = rawOptions;
+  }
+
+  return benchmarkOptions;
+}
+
 export default (
   rawOptions: IBenchmarkOptions | IComparisonList
 ): Promise<string> =>
   new Promise((resolve, reject) => {
-    let benchmarkOptions: IBenchmarkOptions;
-
-    if (Array.isArray(rawOptions)) {
-      benchmarkOptions = { compare: rawOptions } as IBenchmarkOptions;
-    } else {
-      benchmarkOptions = rawOptions as IBenchmarkOptions;
-    }
-
     const {
       compare,
       file,
-      log = true,
+      log,
       options,
       renderer = Renderer.cli
-    } = benchmarkOptions;
+    } = parseOptions(rawOptions);
     const renderFunction = renderers[renderer];
 
     if (!renderFunction) {
@@ -124,7 +112,7 @@ export default (
       .on('complete', () => {
         const data = renderTable(results);
 
-        if (log && !file) {
+        if (log || !file) {
           console.log(data);
         }
 

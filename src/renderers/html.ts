@@ -1,4 +1,4 @@
-import { IRenderFunction } from './types';
+import { IRenderFunction } from './renderer';
 
 const mapHTML = <T>(data: T[], template: (data: T) => string) =>
   data.map(value => template(value)).join('\n');

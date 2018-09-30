@@ -1,5 +1,6 @@
 import * as fs from 'fs';
-import benchmark, { Renderer } from '../src';
+import benchmark, { parseOptions } from '../src';
+import { Renderer } from '../src/renderers/types';
 import { mockConsole } from './mock-console';
 
 const data = new Array(45).fill(100);
@@ -10,8 +11,6 @@ function forLoop() {
   for (let i = 0; i < data.length; i++) {
     result *= result + data[i];
   }
-
-  return result;
 }
 
 function forOf() {
@@ -20,8 +19,6 @@ function forOf() {
   for (const item of data) {
     result *= result + item;
   }
-
-  return result;
 }
 
 function whileLoop() {
@@ -31,20 +28,23 @@ function whileLoop() {
   while (i < data.length) {
     result *= result + data[i++];
   }
-
-  return result;
 }
+
 function forEach() {
   let result = 1;
 
   data.forEach(item => {
     result *= result + item;
   });
-
-  return result;
 }
 
 jest.setTimeout(120 * 1000);
+
+test('parseOptions', () => {
+  expect(
+    parseOptions([['while', whileLoop], ['forEach', forEach]]).compare
+  ).toEqual([['while', whileLoop], ['forEach', forEach]]);
+});
 
 describe('perf table', () => {
   test('should error when no renderer found', async () => {

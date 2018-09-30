@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renderHTML 1`] = `
+"
+  <table>
+    <thead>
+      <tr>
+        <th>name</th>
+<th>age</th>
+<th>pizza topping</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+          <tr>
+            <td>burt</td>
+<td>40</td>
+<td>anchovies</td>
+          </tr>
+        
+
+          <tr>
+            <td>gert</td>
+<td>35</td>
+<td>pineapple</td>
+          </tr>
+        
+
+          <tr>
+            <td>john</td>
+<td>18</td>
+<td>basil</td>
+          </tr>
+        
+    </tbody>
+  </table>
+"
+`;
