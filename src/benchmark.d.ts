@@ -1,5 +1,5 @@
 import * as Benchmark from 'benchmark';
-import { Renderer } from './renderers/renderer';
+import { IRenderFunction, Renderer } from './renderers/renderer';
 
 interface IBenchmark extends Benchmark {
   name: string;
@@ -19,5 +19,5 @@ export interface IBenchmarkOptions {
   file?: string;
   log?: boolean;
   options?: Benchmark.Options;
-  renderer?: Renderer | string;
+  renderer?: Renderer | string | IRenderFunction;
 }

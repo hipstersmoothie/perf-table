@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import benchmark, { parseOptions } from '../src';
-import { Renderer } from '../src/renderers/types';
+import { Renderer } from '../src/renderers/renderer';
 import { mockConsole } from './mock-console';
 
 const data = new Array(45).fill(100);
@@ -125,5 +125,19 @@ describe('perf table', () => {
     });
 
     expect(calls[0][0].indexOf('┼') > -1).toBe(true);
+  });
+
+  test('should use custom render function', async () => {
+    const renderer = jest.fn();
+
+    await benchmark({
+      compare: [['forOf', forOf], ['for', forLoop]],
+      log: false,
+      options: { minSamples: 10 },
+      renderer
+    });
+
+    expect(renderer).toHaveBeenCalled();
+    expect(Array.isArray(renderer.mock.calls[0][0])).toBe(true);
   });
 });

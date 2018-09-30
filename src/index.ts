@@ -64,7 +64,8 @@ export default (
       options,
       renderer = Renderer.cli
     } = parseOptions(rawOptions);
-    const renderFunction = renderers[renderer];
+    const renderFunction =
+      typeof renderer === 'string' ? renderers[renderer] : renderer;
 
     if (!renderFunction) {
       return reject(new Error('Renderer not found.'));
@@ -112,7 +113,7 @@ export default (
       .on('complete', () => {
         const data = renderTable(results);
 
-        if (log || !file) {
+        if (log === true || (log === undefined && !file)) {
           console.log(data);
         }
 

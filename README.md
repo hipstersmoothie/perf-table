@@ -74,6 +74,19 @@ table({
 });
 ```
 
+### Benchmark Options
+
+`perf-table` is on top of [benchmark.js](https://benchmarkjs.com) and you can configure the each comparison run with [benchmark.js options](https://benchmarkjs.com/docs#options).
+
+```js
+table({
+  compare: [ ... ],
+  options: {
+    minSamples: 500
+  }
+});
+```
+
 ### Output Modes
 
 `perf-table` comes with a few output modes pre configured.
@@ -87,6 +100,20 @@ table({
 table({
   compare: [ ... ],
   renderer: 'html'
+})
+```
+
+### Custom Renderer
+
+If you want to control how the table renders, pass a function to `renderer` and this will be used to render the perf table data.
+
+```js
+const renderCSV: IRenderFunction = data =>
+  data.reduce((text, line) => text + `\n${line.join(',')}`, '');
+
+table({
+  compare: [ ... ],
+  renderer: renderCSV
 })
 ```
 
