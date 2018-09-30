@@ -1,38 +1,118 @@
-# Package Starter
+# perf-table
 
-This is a project that has all the tools I use set up so I can get straight to coding.
+Easily create a table comparing the performance of different functions. Useful for comparing npm packages and different implementations.
 
-Tools Used:
+## Install
 
-* lint - [XO](https://github.com/xojs/xo) - Opinionated but configurable ESLint wrapper with lots of goodies included.
-* test - [jest](https://github.com/facebook/jest) - Delightful JavaScript Testing. 
-* build - [babel](https://github.com/babel/babel) - A compiler for writing next generation JavaScript.
-* formatting - [prettier](https://github.com/prettier/prettier) - An opinionated code formatter. This will format your code on commit.
-* release - [github-semantic-version](https://github.com/ericclemmons/github-semantic-version) - Automated semantic version releases powered by Github Issues.
-
-## Setup
-
-First start off by cloning this repo and setting the `origin` to your own repo.
-
-```sh
-git clone https://github.com/hipstersmoothie/package-starter
-git remote rm origin
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_GITHUB_REPO.git
-git push -u origin master
+```
+npm i --save-dev perf-table
 ```
 
-### Package.json
+## Usage
 
-1. Change `name` to your package name.
-2. Change `description` to describe your package.
-3. Change `author.name` to your name.
-4. Change `author.email` to your email.
-5. Change `repository.url` to your github repo.
+To use `perf-table` simply provide and array of testing tuples. Each testing tuple should have a name or npm package name as it's first member and a function to run as it's second.
 
-### License
+The following example tests the perf differences between looping strategies.
 
-1. Change `<YEAR>` to current year. Update this as the years pass.
-2. Change `<COPYRIGHT HOLDER>` to your name.
+```js
+const data = new Array(45).fill(100);
+
+function forLoop() {
+  let result = 1;
+
+  for (let i = 0; i < data.length; i++) {
+    result *= result + data[i];
+  }
+}
+
+function forOf() {
+  let result = 1;
+
+  for (const item of data) {
+    result *= result + item;
+  }
+}
+
+function whileLoop() {
+  let result = 1;
+  let i = 0;
+
+  while (i < data.length) {
+    result *= result + data[i++];
+  }
+}
+
+function forEach() {
+  let result = 1;
+
+  data.forEach(item => {
+    result *= result + item;
+  });
+}
+
+table([
+  ['for', forLoop],
+  ['for of', forOf],
+  ['while', whileLoop],
+  ['forEach', forEach]
+]);
+```
+
+### Providing Tuples with other configuration
+
+If you want to configure the table furthur you will have to put the array demonstrated above in the `compare` key of your options
+
+```js
+table({
+  compare: [
+    ['for', forLoop],
+    ['for of', forOf],
+    ['while', whileLoop],
+    ['forEach', forEach]
+  ]
+});
+```
+
+### Output Modes
+
+`perf-table` comes with a few output modes pre configured.
+
+- cli (default) - output a table formatted for the CLI
+- md - output a markdown table
+- html - output a html table
+- csv - output the table data in csv
+
+```js
+table({
+  compare: [ ... ],
+  renderer: 'html'
+})
+```
+
+### Writing to a file
+
+By default `perf-table` just prints the table to the console. If you provide a file path in the `file` option the table output will be written to that path.
+
+```js
+table({
+  compare: [ ... ],
+  file: 'test.txt'
+})
+```
+
+### Force Logging
+
+When the `file` option is provided the table will not be logged to the console. To override this behavior also pass `log: true`.
+
+```js
+table({
+  compare: [ ... ],
+  file: 'test.txt',
+  log: true
+})
+```
+
+# CONFIG LEFT TO DO:
 
 ### Github Config
 
@@ -59,7 +139,3 @@ Un-comment `publish` blocks when you are ready to start publishing
 11. Turn on 'Only build pull requests'.
 12. Add environment variable `GH_TOKEN` in CircleCI settings. (personal access token from github)
 13. Add environment variable `NPM_TOKEN` in CircleCI settings. (publishing token from npm)
-
-## All Done!
-
-Now you are set up to develop your package. Each pull request will be released once it is merged to master.

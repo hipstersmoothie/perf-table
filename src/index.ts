@@ -3,9 +3,16 @@ import * as compose from 'compose-tiny';
 import * as fs from 'fs';
 import * as ora from 'ora';
 
-// Table Renderers
 import * as mdTable from 'markdown-table';
 import { table } from 'table';
+import renderCSV from './renderers/csv';
+import renderHTML from './renderers/html';
+
+import { IRenderFunction, Renderer } from './renderers/types';
+
+interface IRendererMap {
+  [key: string]: IRenderFunction;
+}
 
 interface IBenchmark extends Benchmark {
   name: string;
@@ -18,22 +25,22 @@ interface IBenchmarkResult extends Benchmark.Event {
 
 type IBenchmarkFunction = () => void;
 
-export const enum Renderer {
-  cli = 'CLI',
-  md = 'md'
-}
-
-interface IRendererMap {
-  [key: string]: (data: (string | number)[][]) => string;
-}
+type IComparisonList = [string, IBenchmarkFunction][];
 
 interface IBenchmarkOptions {
-  compare: [string, IBenchmarkFunction][];
+  compare: IComparisonList;
   file?: string;
   log?: boolean;
   options?: Benchmark.Options;
   renderer?: Renderer | string;
 }
+
+const renderers: IRendererMap = {
+  [Renderer.md]: mdTable,
+  [Renderer.cli]: table,
+  [Renderer.csv]: renderCSV,
+  [Renderer.html]: renderHTML
+};
 
 const initTableConfig = (benchmarkResults: IBenchmarkResult[]) => [
   ['NAME', 'OPS/SEC', 'RELATIVE MARGIN OF ERROR', 'SAMPLE SIZE'],
@@ -50,19 +57,25 @@ const sortDescResults = (benchmarkResults: IBenchmarkResult[]) =>
 
 const defaultOptions = { minSamples: 100 };
 
-const renderers: IRendererMap = {
-  [Renderer.md]: mdTable,
-  [Renderer.cli]: table
-};
+export default (
+  rawOptions: IBenchmarkOptions | IComparisonList
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    let benchmarkOptions: IBenchmarkOptions;
 
-export default ({
-  compare,
-  file,
-  log = true,
-  options,
-  renderer = Renderer.cli
-}: IBenchmarkOptions): Promise<string> => {
-  return new Promise((resolve, reject) => {
+    if (Array.isArray(rawOptions)) {
+      benchmarkOptions = { compare: rawOptions } as IBenchmarkOptions;
+    } else {
+      benchmarkOptions = rawOptions as IBenchmarkOptions;
+    }
+
+    const {
+      compare,
+      file,
+      log = true,
+      options,
+      renderer = Renderer.cli
+    } = benchmarkOptions;
     const renderFunction = renderers[renderer];
 
     if (!renderFunction) {
@@ -80,15 +93,17 @@ export default ({
 
     let spinner = ora();
 
+    const setSpinner = (event: IBenchmarkResult) => {
+      spinner = ora(`Running ${event.target.name} benchmark`);
+      spinner.start();
+    };
+
     compare.forEach(([packageName, packageRunner]) => {
       benchmark.add(packageName, packageRunner, currentOptions);
     });
 
     benchmark
-      .on('start', (event: IBenchmarkResult) => {
-        spinner = ora(`Running ${event.target.name} benchmark`);
-        spinner.start();
-      })
+      .on('start', setSpinner)
       .on('cycle', (event: IBenchmarkResult) => {
         const { name } = event.target;
         const index = Object.values(event.currentTarget).findIndex(
@@ -102,33 +117,31 @@ export default ({
           return;
         }
 
-        spinner = ora(
-          `Running ${event.currentTarget[index + 1].name} benchmark`
-        );
-        spinner.start();
+        setSpinner({
+          target: event.currentTarget[index + 1]
+        } as IBenchmarkResult);
       })
       .on('complete', () => {
-        spinner.stop();
-
         const data = renderTable(results);
 
-        if (log) {
+        if (log && !file) {
           console.log(data);
         }
 
         if (!file) {
+          spinner.stop();
           return resolve(data);
         }
 
         fs.writeFile(file, data, err => {
           if (err) {
-            reject(err);
-          } else {
-            console.log(`Successfully wrote performance results to: ${file}`);
-            resolve(data);
+            return reject(err);
           }
+
+          spinner.succeed(`Successfully wrote performance results to: ${file}`);
+          spinner.stop();
+          resolve(data);
         });
       })
       .run({ async: true });
   });
-};
