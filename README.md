@@ -182,13 +182,6 @@ table({
 
 # CONFIG LEFT TO DO:
 
-### Github Config
-
-1. Add `major` label.
-2. Add `minor` label.
-3. Add `patch` label.
-4. Add `internal` label.
-
 ### CircleCI Config
 
 Un-comment `publish` blocks when you are ready to start publishing
