@@ -1,4 +1,9 @@
-# perf-table
+<div align="center">
+  <img width="200" height="200"
+    src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/129/mantelpiece-clock_1f570.png">
+  <h1>perf-table</h1>
+  <p>Compare the performance of functions.</p>
+</div
 
 Easily create a table comparing the performance of different functions. Useful for comparing npm packages and different implementations.
 

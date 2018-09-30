@@ -1,7 +1,7 @@
 {
   "name": "perf-table",
   "version": "0.0.0",
-  "description": "Output a performance test table to CLI or markdown",
+  "description": "Compare the performance of functions.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
