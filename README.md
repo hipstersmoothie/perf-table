@@ -50,7 +50,9 @@ function forEach() {
   });
 }
 
-table([
+// Table is a promise that resolve when done printing/writing the table.
+// Resolves with formatted table
+const data = await table([
   ['for', forLoop],
   ['for of', forOf],
   ['while', whileLoop],
@@ -170,7 +172,6 @@ table({
 2. Add `minor` label.
 3. Add `patch` label.
 4. Add `internal` label.
-5. Change `README.md` to your project's README.
 
 ### CircleCI Config
 
