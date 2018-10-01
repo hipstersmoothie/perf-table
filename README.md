@@ -5,6 +5,8 @@
   <p>Compare the performance of functions.</p>
 </div
 
+[![CircleCI](https://img.shields.io/circleci/project/github/hipstersmoothie/perf-table/master.svg?style=for-the-badge)](https://circleci.com/gh/hipstersmoothie/perf-table/tree/master) [![Codecov](https://img.shields.io/codecov/c/github/hipstersmoothie/perf-table.svg?style=for-the-badge)](https://codecov.io/gh/hipstersmoothie/perf-table) [![npm](https://img.shields.io/npm/v/perf-table.svg?style=for-the-badge)](https://www.npmjs.com/package/perf-table) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=for-the-badge)](https://github.com/prettier/prettier)
+
 Easily create a table comparing the performance of different functions. Useful for comparing npm packages and different implementations.
 
 ## Install
