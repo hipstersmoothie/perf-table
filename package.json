@@ -1,6 +1,6 @@
 {
   "name": "perf-table",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Compare the performance of functions.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
