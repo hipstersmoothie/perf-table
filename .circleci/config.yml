@@ -5,7 +5,7 @@ general:
     - coverage/
 
 defaults: &defaults
-  working_directory: ~/package-starter
+  working_directory: ~/perf-table
   docker:
     - image: circleci/node:latest-browsers
     
@@ -18,12 +18,12 @@ jobs:
           keys: 
             # Find a cache corresponding to this specific package.json checksum
             # when this file is changed, this key will fail
-            - package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
-            - package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}
-            - package-starter-{{ .Branch }}
+            - perf-table-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
+            - perf-table-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - perf-table-{{ .Branch }}
             # Find the most recent cache used from any branch
-            - package-starter-master
-            - package-starter-
+            - perf-table-master
+            - perf-table-
       - run:
           name: Install Dependencies
           command: yarn install --frozen-lockfile
@@ -31,7 +31,7 @@ jobs:
           name: Build
           command: yarn build
       - save_cache:
-          key: package-starter-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
+          key: perf-table-{{ .Branch }}-{{ checksum "yarn.lock" }}-{{ checksum ".circleci/config.yml" }}
           paths:
             - ~/.cache/yarn
             - node_modules
@@ -43,7 +43,7 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: ~/package-starter   
+          at: ~/perf-table   
       - run:
           name: Lint
           command: yarn lint
@@ -51,20 +51,20 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: ~/package-starter 
+          at: ~/perf-table 
       - run:
           name: Test
           command: yarn test --ci
-  # publish:
-  #   <<: *defaults
-  #   steps:
-  #     - attach_workspace:
-  #         at: ~/package-starter 
-  #     - run: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-  #     - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-  #     - run:
-  #         name: Publish Library
-  #         command: npm run release
+  publish:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/perf-table 
+      - run: mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run:
+          name: Publish Library
+          command: npm run release
 workflows:
   version: 2
   build_and_test:
@@ -85,11 +85,11 @@ workflows:
           filters:
             tags:
               only: /.*/
-      # - publish:
-      #     requires:
-      #         - lint
-      #         - test
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
+      - publish:
+          requires:
+              - lint
+              - test
+          filters:
+            branches:
+              only:
+                - master

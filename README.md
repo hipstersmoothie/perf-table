@@ -184,23 +184,3 @@ table({
   bundle: 'link'
 })
 ```
-
-# CONFIG LEFT TO DO:
-
-### CircleCI Config
-
-Un-comment `publish` blocks when you are ready to start publishing
-
-1. Replace all instances of `package-starter` in `.circleci/config.yml` with your package name.
-2. Go to `https://circleci.com/gh/YOUR_USERNAME`
-3. Click Authorize (if you haven't already)
-4. Click 'Add Projects' on the left sidebar.
-5. Click 'Set Up Project' for 'YOUR_PACKAGE_NAME'.
-6. Click 'Start Building'.
-7. Go to 'YOUR_PACKAGE_NAME' project in CircleCI.
-8. Click cog icon in top corner.
-9. Click `advanced settings`.
-10. Turn on 'Build forked pull requests'.
-11. Turn on 'Only build pull requests'.
-12. Add environment variable `GH_TOKEN` in CircleCI settings. (personal access token from github)
-13. Add environment variable `NPM_TOKEN` in CircleCI settings. (publishing token from npm)
