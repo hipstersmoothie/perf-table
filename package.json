@@ -16,9 +16,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "YOUR_PROJECT_URL"
+    "url": "https://github.com/hipstersmoothie/perf-table.git"
   },
   "license": "MIT",
+  "keywords": [
+    "performance",
+    "benchmark",
+    "markdown",
+    "README",
+    "table",
+    "html",
+    "csv",
+    "bundle",
+    "bundlephobia"
+  ],
   "dependencies": {
     "@types/benchmark": "^1.0.31",
     "@types/node": "^10.11.3",
